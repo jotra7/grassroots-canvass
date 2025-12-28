@@ -1,0 +1,2 @@
+#include? "Pods/Target Support Files/Pods-Grassroots Canvass/Pods-Grassroots Canvass.debug.xcconfig"
+#include "Generated.xcconfig"

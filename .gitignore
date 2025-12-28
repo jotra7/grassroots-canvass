@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.dart_tool/
+.flutter-plugins*
+
+# Build outputs
+build/
+.next/
+*.g.dart
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Platform specific
+ios/Pods/
+ios/.symlinks/
+android/.gradle/
+macos/Pods/
+
+# Environment
+.env
+.env.local
+*.local
+
+# Keys and secrets
+*.jks
+*.keystore
+google-services.json
+GoogleService-Info.plist
+key.properties
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# AI-related files
+CLAUDE.md
+.claude/
+.cursor/
+.aider*
+.continue/
+.copilot/
