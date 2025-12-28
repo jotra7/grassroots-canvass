@@ -23,12 +23,15 @@ import {
   MessageSquareText,
   Users as UsersIcon,
   ChevronDown,
+  Phone,
 } from "lucide-react";
 import { TemplatesTable } from "@/components/templates/templates-table";
 import { TemplateDialog } from "@/components/templates/template-dialog";
+import { CallScriptsTable } from "@/components/templates/call-scripts-table";
+import { CallScriptDialog } from "@/components/templates/call-script-dialog";
 import { CandidatesTable } from "@/components/candidates/candidates-table";
 import { CandidateDialog } from "@/components/candidates/candidate-dialog";
-import type { Candidate, TextTemplateWithCounts, TemplateCategory } from "@/types/templates";
+import type { Candidate, TextTemplateWithCounts, CallScript } from "@/types/templates";
 import { CATEGORY_LABELS } from "@/types/templates";
 
 interface UserProfile {
@@ -50,18 +53,22 @@ interface TemplatesClientProps {
     candidates: Candidate[];
     users: UserProfile[];
     cutLists: CutList[];
+    callScripts: CallScript[];
   };
 }
 
 export function TemplatesClient({ data }: TemplatesClientProps) {
   const [templates, setTemplates] = useState(data.templates);
   const [candidates, setCandidates] = useState(data.candidates);
+  const [callScripts, setCallScripts] = useState(data.callScripts);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [candidateFilter, setCandidateFilter] = useState<string>("all");
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [candidateDialogOpen, setCandidateDialogOpen] = useState(false);
+  const [callScriptDialogOpen, setCallScriptDialogOpen] = useState(false);
   const [candidatesOpen, setCandidatesOpen] = useState(false);
+  const [callScriptsOpen, setCallScriptsOpen] = useState(false);
 
   const handleRefresh = () => {
     window.location.reload();
@@ -199,6 +206,51 @@ export function TemplatesClient({ data }: TemplatesClientProps) {
         </Card>
       </Collapsible>
 
+      {/* Call Scripts Section (Collapsible) */}
+      <Collapsible open={callScriptsOpen} onOpenChange={setCallScriptsOpen}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Phone className="h-5 w-5" />
+                  <CardTitle>Call Scripts</CardTitle>
+                  <span className="text-sm text-muted-foreground">
+                    ({callScripts.length})
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCallScriptDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Script
+                  </Button>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      callScriptsOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <CallScriptsTable
+                scripts={callScripts}
+                onRefresh={handleRefresh}
+              />
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
       {/* Templates Section */}
       <Card>
         <CardHeader>
@@ -270,6 +322,13 @@ export function TemplatesClient({ data }: TemplatesClientProps) {
         open={candidateDialogOpen}
         onOpenChange={setCandidateDialogOpen}
         candidate={null}
+        onSaved={handleRefresh}
+      />
+
+      <CallScriptDialog
+        open={callScriptDialogOpen}
+        onOpenChange={setCallScriptDialogOpen}
+        script={null}
         onSaved={handleRefresh}
       />
     </div>

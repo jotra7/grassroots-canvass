@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import '../../models/call_script.dart';
 import '../../services/analytics_service.dart';
+import '../../services/supabase_service.dart';
 import '../../utils/adaptive_icons.dart';
 
 class CallScriptScreen extends StatefulWidget {
@@ -13,17 +14,78 @@ class CallScriptScreen extends StatefulWidget {
 
 class _CallScriptScreenState extends State<CallScriptScreen> {
   int _currentSection = 0;
+  List<ScriptSection> _sections = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     AnalyticsService.instance.trackScreen('call_script');
+    _loadScripts();
+  }
+
+  Future<void> _loadScripts() async {
+    try {
+      final scripts = await SupabaseService.instance.getCallScripts();
+      setState(() {
+        _sections = scripts;
+        _isLoading = false;
+      });
+    } catch (e) {
+      // Fall back to defaults on error
+      setState(() {
+        _sections = CallScript.defaults;
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final sections = CallScript.allSections;
-    final current = sections[_currentSection];
+    if (_isLoading) {
+      return PlatformScaffold(
+        appBar: PlatformAppBar(
+          title: const Text('Call Script'),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_sections.isEmpty) {
+      return PlatformScaffold(
+        appBar: PlatformAppBar(
+          title: const Text('Call Script'),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.phone_disabled,
+                size: 48,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No call scripts available',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Contact your campaign admin to set up scripts',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final current = _sections[_currentSection];
 
     return PlatformScaffold(
       appBar: PlatformAppBar(
@@ -41,7 +103,7 @@ class _CallScriptScreenState extends State<CallScriptScreen> {
         children: [
           // Progress indicator
           LinearProgressIndicator(
-            value: (_currentSection + 1) / sections.length,
+            value: (_currentSection + 1) / _sections.length,
             backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           ),
 
@@ -51,7 +113,7 @@ class _CallScriptScreenState extends State<CallScriptScreen> {
             color: current.color.withOpacity(0.1),
             child: Row(
               children: [
-                for (int i = 0; i < sections.length; i++)
+                for (int i = 0; i < _sections.length; i++)
                   Expanded(
                     child: GestureDetector(
                       onTap: () => setState(() => _currentSection = i),
@@ -111,7 +173,7 @@ class _CallScriptScreenState extends State<CallScriptScreen> {
                                   ),
                             ),
                             Text(
-                              'Step ${_currentSection + 1} of ${sections.length}',
+                              'Step ${_currentSection + 1} of ${_sections.length}',
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: Theme.of(context).colorScheme.outline,
                                   ),
@@ -199,7 +261,7 @@ class _CallScriptScreenState extends State<CallScriptScreen> {
                 else
                   const Expanded(child: SizedBox()),
                 const SizedBox(width: 16),
-                if (_currentSection < sections.length - 1)
+                if (_currentSection < _sections.length - 1)
                   Expanded(
                     child: FilledButton.icon(
                       onPressed: () => setState(() => _currentSection++),

@@ -5,6 +5,7 @@ import '../models/contact_entry.dart';
 import '../models/app_notification.dart';
 import '../models/cut_list.dart';
 import '../models/text_template.dart';
+import '../models/call_script.dart';
 import '../models/campaign.dart';
 import '../models/enums/contact_method.dart';
 import '../models/enums/canvass_result.dart';
@@ -1049,6 +1050,33 @@ class SupabaseService {
     } catch (e) {
       print('[SupabaseService] Failed to fetch text templates: $e');
       return TextTemplate.defaults;
+    }
+  }
+
+  /// Fetch call script sections from database
+  /// Falls back to defaults if no scripts found or if in demo mode
+  Future<List<ScriptSection>> getCallScripts() async {
+    if (isDemoMode) {
+      return CallScript.defaults;
+    }
+
+    try {
+      final response = await _client
+          .from('call_scripts')
+          .select('*')
+          .eq('is_active', true)
+          .order('section')
+          .order('display_order');
+
+      final scripts = (response as List)
+          .map((json) => ScriptSection.fromJson(json))
+          .toList();
+
+      // Return fetched scripts, or defaults if empty
+      return scripts.isNotEmpty ? scripts : CallScript.defaults;
+    } catch (e) {
+      print('[SupabaseService] Failed to fetch call scripts: $e');
+      return CallScript.defaults;
     }
   }
 

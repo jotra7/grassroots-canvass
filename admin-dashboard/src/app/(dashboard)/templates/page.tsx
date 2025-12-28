@@ -61,11 +61,19 @@ async function getTemplatesData() {
     .select("id, name, voter_count")
     .order("name");
 
+  // Get call scripts
+  const { data: callScripts } = await supabase
+    .from("call_scripts")
+    .select("*")
+    .order("section")
+    .order("display_order");
+
   return {
     templates: templatesWithCounts,
     candidates: candidates || [],
     users: users || [],
     cutLists: cutLists || [],
+    callScripts: callScripts || [],
   };
 }
 
