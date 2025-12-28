@@ -143,6 +143,12 @@ ALTER TABLE public.candidates
 
 CREATE INDEX IF NOT EXISTS idx_candidates_campaign ON public.candidates(campaign_id);
 
+-- Add campaign_id to contact_history
+ALTER TABLE public.contact_history
+  ADD COLUMN IF NOT EXISTS campaign_id UUID REFERENCES public.campaigns(id) ON DELETE CASCADE;
+
+CREATE INDEX IF NOT EXISTS idx_contact_history_campaign ON public.contact_history(campaign_id);
+
 -- ========================================
 -- CAMPAIGN RLS POLICIES
 -- ========================================
@@ -246,6 +252,16 @@ CREATE POLICY "Users can read templates in their campaigns"
 -- Additional candidates policy for campaign isolation
 CREATE POLICY "Users can read candidates in their campaigns"
   ON public.candidates FOR SELECT
+  TO authenticated
+  USING (
+    campaign_id IS NULL
+    OR campaign_id IN (SELECT public.user_campaign_ids())
+    OR public.is_admin()
+  );
+
+-- Additional contact_history policy for campaign isolation
+CREATE POLICY "Users can read contact history in their campaigns"
+  ON public.contact_history FOR SELECT
   TO authenticated
   USING (
     campaign_id IS NULL
